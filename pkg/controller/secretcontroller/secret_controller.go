@@ -2,6 +2,7 @@ package secretcontroller
 
 import (
 	"context"
+	"reflect"
 	"strings"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	coreinformersv1 "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/klog/v2"
 
 	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/events"
@@ -63,10 +65,10 @@ func (c *SecretController) Name() string {
 }
 
 func (c *SecretController) sync(ctx context.Context, syncContext factory.SyncContext) error {
-	// sync awsCred
+	// Sync awsCred
 	awsCred := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "awsCred",
+			Name:      "my-aws-cred",
 			Namespace: "kube-system",
 		},
 		Data: map[string][]byte{
@@ -75,15 +77,28 @@ func (c *SecretController) sync(ctx context.Context, syncContext factory.SyncCon
 		},
 	}
 
-	// ensure awsCred always exists
-	if _, err := c.kubeClient.CoreV1().Secrets("kube-system").Get(ctx, awsCred.Name, metav1.GetOptions{}); err != nil {
+	// Ensure awsCred always exists
+	gotSec, err := c.secretInformer.Lister().Secrets("kube-system").Get(awsCred.Name)
+	if err != nil {
 		if apierrors.IsNotFound(err) {
+			klog.Info("Creating kube-system/my-aws-cred secret")
 			if _, err := c.kubeClient.CoreV1().Secrets("kube-system").Create(ctx, awsCred, metav1.CreateOptions{}); err != nil {
 				return err
 			}
 		} else {
 			return err
 		}
+	} else {
+		// If gotSec exists, compare its data with awsCred and update if necessary
+		if !reflect.DeepEqual(gotSec.Data, awsCred.Data) {
+			klog.Info("Updating kube-system/my-aws-cred secret")
+			gotSec.Data = awsCred.Data
+			_, err := c.kubeClient.CoreV1().Secrets("kube-system").Update(ctx, gotSec, metav1.UpdateOptions{})
+			if err != nil {
+				return err
+			}
+		}
 	}
+
 	return nil
 }
