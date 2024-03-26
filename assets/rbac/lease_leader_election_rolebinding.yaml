@@ -1,0 +1,14 @@
+# Grant controller access to leases
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dynamic-refresh-operator-lease-leader-election
+  namespace: dynamic-refresh-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dynamic-refresh-operator-lease-leader-election
+subjects:
+- kind: ServiceAccount
+  name: dynamic-refresh-operator-sa
+  namespace: dynamic-refresh-operator

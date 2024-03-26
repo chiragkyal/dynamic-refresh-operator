@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamic-refresh-operator
+  namespace: dynamic-refresh-operator
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dynamic-refresh-operator
+  template:
+    metadata:
+      labels:
+        app: dynamic-refresh-operator
+    spec:
+      serviceAccountName: dynamic-refresh-operator-sa
+      containers:
+      - name: dynamic-refresh-operator
+        image: quay.io/ckyal/dynamic-refresh-operator
+        command: ["/usr/bin/dynamic-refresh-operator", "start"]
+

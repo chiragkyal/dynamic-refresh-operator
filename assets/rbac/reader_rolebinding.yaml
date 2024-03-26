@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dynamic-refresh-operator-reader-binding
+  namespace: dynamic-refresh-operator
+subjects:
+- kind: ServiceAccount
+  name: dynamic-refresh-operator-sa
+  namespace: dynamic-refresh-operator
+roleRef:
+  kind: Role
+  name: dynamic-refresh-operator-reader
+  apiGroup: rbac.authorization.k8s.io
