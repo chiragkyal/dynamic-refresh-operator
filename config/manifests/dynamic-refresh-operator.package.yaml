@@ -1,0 +1,4 @@
+packageName: dynamic-refresh-operator
+channels:
+- name: stable
+  currentCSV: dynamic-refresh-operator.v4.16.0
