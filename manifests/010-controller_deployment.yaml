@@ -23,4 +23,3 @@ spec:
       - name: dynamic-refresh-operator
         image: quay.io/ckyal/dynamic-refresh-operator
         command: ["/usr/bin/dynamic-refresh-operator", "start"]
-
